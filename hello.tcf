@@ -86,6 +86,14 @@ task.fxn      = prog.decl("taskFxn");
 task.arg0     = 10;
 
 
+bios.SWI.instance("PRD_swi").order = 1;
+bios.SWI.create("SWI0");
+bios.SWI.instance("SWI0").order = 4;
+bios.SWI.instance("SWI0").fxn = prog.extern("SWI_filter_data");
+bios.SWI.instance("SWI0").destroy();
+bios.SWI.create("SWI_filter_thread");
+bios.SWI.instance("SWI_filter_thread").order = 4;
+bios.SWI.instance("SWI_filter_thread").fxn = prog.extern("SWI_filter_data");
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {

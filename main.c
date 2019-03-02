@@ -27,7 +27,8 @@
 #include "ezdsp5502_mcbsp.h"
 #include "csl_mcbsp.h"
 
-extern void audioProcessingInit(void);
+extern void ping_pong_init(void);
+
 
 volatile int counter = 0;
 
@@ -47,7 +48,7 @@ void main(void)
     C55_enableInt(7); // reference technical manual, I2S2 tx interrupt
     C55_enableInt(6); // reference technical manual, I2S2 rx interrupt
 
-    audioProcessingSetup();
+    audio_setup();
 
     // after main() exits the DSP/BIOS scheduler starts
 }
