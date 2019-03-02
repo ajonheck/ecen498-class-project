@@ -12,11 +12,14 @@
 #include "pingPong.h"
 #include <stdint.h>
 #include <Swi.h>
+#include "fir.h"
+#include <string.h>
 
 extern  SWI_Obj  SWI_filter_thread;
 
 #define LEN_PING_PONG 48
-
+#define LEN_H 1
+#define LEN_DL (LEN_PING_PONG + 1 - LEN_H)
 typedef enum
 {
 	LEFT,
@@ -59,6 +62,14 @@ int16_t r_rx_pong[LEN_PING_PONG];
 Channel_t rx_channel = LEFT;
 Channel_t tx_channel = LEFT;
 
+int16_t filter_coeffs[] =
+{
+		32767
+};
+
+int16_t dll[LEN_DL];
+int16_t dlr[LEN_DL];
+
 void audio_setup()
 {
 	// Setup rx buffers
@@ -76,6 +87,10 @@ void audio_setup()
 	// Setup tx buffers; must be opposite of out buffs
 	setup_ping_pong(&l_tx_pingpong, LEN_PING_PONG, l_tx_ping, l_tx_pong, PONG);
 	setup_ping_pong(&r_tx_pingpong, LEN_PING_PONG, r_tx_ping, r_tx_pong, PONG);
+
+	memset(dll, 0, sizeof(int16_t) * LEN_DL);
+	memset(dlr, 0, sizeof(int16_t) * LEN_DL);
+
 }
 
 void HWI_I2S_Rx(void)
@@ -117,18 +132,24 @@ void HWI_I2S_Tx(void)
 
 void SWI_filter_data(void)
 {
+	int16_t *h = filter_coeffs;
+
+	// filter left channel
 	int16_t *x = get_active_buffer(&l_data_pingpong);
 	int16_t *y = get_active_buffer(&l_out_pingpong);
+	int16_t *delayline = dll;
 
-	memcpy(y, x, sizeof(int16_t) * LEN_PING_PONG);
+	fir_filter(x, LEN_PING_PONG, h, LEN_H, y, delayline);
 
 	swap_active_buffer(&l_data_pingpong);
 	swap_active_buffer(&l_out_pingpong);
 
+	// filter right channel
 	x = get_active_buffer(&r_data_pingpong);
 	y = get_active_buffer(&r_out_pingpong);
+	delayline = dlr;
 
-	memcpy(y, x, sizeof(int16_t) * LEN_PING_PONG);
+	fir_filter(x, LEN_PING_PONG, h, LEN_H, y, delayline);
 
 	swap_active_buffer(&r_data_pingpong);
 	swap_active_buffer(&r_out_pingpong);

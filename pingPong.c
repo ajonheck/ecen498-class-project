@@ -46,7 +46,7 @@ PingPong_t write_sample_ping_pong(PingPongBuff_t *buff, int16_t value)
 
 int16_t* get_active_buffer(PingPongBuff_t *buff)
 {
-	return ( buff->buffer == PING) ? buff->ping : buff->pong ;
+	return ( buff->buffer == PING) ? buff->ping : buff->pong;
 }
 
 PingPong_t swap_active_buffer(PingPongBuff_t *buff)
