@@ -117,13 +117,21 @@ void HWI_I2S_Tx(void)
 
 void SWI_filter_data(void)
 {
-	int16_t output[LEN_PING_PONG];
-	int16_t frame[LEN_PING_PONG];
+	int16_t *x = get_active_buffer(&l_data_pingpong);
+	int16_t *y = get_active_buffer(&l_out_pingpong);
 
-	read_frame_ping_pong(&l_data_pingpong, frame);
-	write_frame_ping_pong(&l_out_pingpong, frame);
+	memcpy(y, x, sizeof(int16_t) * LEN_PING_PONG);
 
-	read_frame_ping_pong(&r_data_pingpong, frame);
-	write_frame_ping_pong(&r_out_pingpong, frame);
+	swap_active_buffer(&l_data_pingpong);
+	swap_active_buffer(&l_out_pingpong);
+
+	x = get_active_buffer(&r_data_pingpong);
+	y = get_active_buffer(&r_out_pingpong);
+
+	memcpy(y, x, sizeof(int16_t) * LEN_PING_PONG);
+
+	swap_active_buffer(&r_data_pingpong);
+	swap_active_buffer(&r_out_pingpong);
+
 }
 
