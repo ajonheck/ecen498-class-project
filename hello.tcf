@@ -94,6 +94,10 @@ bios.SWI.instance("SWI0").destroy();
 bios.SWI.create("SWI_filter_thread");
 bios.SWI.instance("SWI_filter_thread").order = 4;
 bios.SWI.instance("SWI_filter_thread").fxn = prog.extern("SWI_filter_data");
+bios.SWI.instance("SWI_filter_thread").mailbox = 1;
+bios.TSK.instance("TSK_idle").order = 1;
+bios.TSK.instance("task").order = 2;
+bios.SWI.instance("SWI_filter_thread").mailbox = 0;
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {

@@ -17,9 +17,9 @@
 
 extern  SWI_Obj  SWI_filter_thread;
 
-#define LEN_PING_PONG 48
-#define LEN_H 1
-#define LEN_DL (LEN_PING_PONG + 1 - LEN_H)
+#define LEN_PING_PONG 2
+#define LEN_H 64
+#define LEN_DL (LEN_PING_PONG - 1 + LEN_H)
 typedef enum
 {
 	LEFT,
@@ -62,9 +62,20 @@ int16_t r_rx_pong[LEN_PING_PONG];
 Channel_t rx_channel = LEFT;
 Channel_t tx_channel = LEFT;
 
-int16_t filter_coeffs[] =
+int16_t h_low[] =
 {
-		32767
+       151,    179,    207,    236,    266,    296,    327,    358,    389,    421,    452,    483,    513,    543,    573,    601,
+       629,    656,    682,    706,    729,    750,    770,    788,    805,    819,    832,    842,    851,    857,    862,    864,
+       864,    862,    857,    851,    842,    832,    819,    805,    788,    770,    750,    729,    706,    682,    656,    629,
+       601,    573,    543,    513,    483,    452,    421,    389,    358,    327,    296,    266,    236,    207,    179,    151,
+};
+
+int16_t h_high[] =
+{
+       133,    121,    106,     90,     73,     53,     31,      7,    -20,    -49,    -81,   -116,   -154,   -197,   -243,   -294,
+      -351,   -414,   -485,   -565,   -656,   -762,   -887,  -1037,  -1221,  -1457,  -1771,  -2215,  -2899,  -4114,  -6919, -20849,
+     20849,   6919,   4114,   2899,   2215,   1771,   1457,   1221,   1037,    887,    762,    656,    565,    485,    414,    351,
+       294,    243,    197,    154,    116,     81,     49,     20,     -7,    -31,    -53,    -73,    -90,   -106,   -121,   -133,
 };
 
 int16_t dll[LEN_DL];
@@ -132,7 +143,7 @@ void HWI_I2S_Tx(void)
 
 void SWI_filter_data(void)
 {
-	int16_t *h = filter_coeffs;
+	int16_t *h = h_high;
 
 	// filter left channel
 	int16_t *x = get_active_buffer(&l_data_pingpong);
