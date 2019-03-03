@@ -27,9 +27,6 @@
 #include "ezdsp5502_mcbsp.h"
 #include "csl_mcbsp.h"
 
-extern void ping_pong_init(void);
-
-
 volatile int counter = 0;
 
 void main(void)
