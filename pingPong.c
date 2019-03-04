@@ -49,6 +49,12 @@ int16_t* get_active_buffer(PingPongBuff_t *buff)
 	return ( buff->buffer == PING) ? buff->ping : buff->pong;
 }
 
+
+int16_t* get_inactive_buffer(PingPongBuff_t *buff)
+{
+	return ( buff->buffer == PING) ? buff->pong : buff->ping;
+}
+
 PingPong_t swap_active_buffer(PingPongBuff_t *buff)
 {
 	buff->buffer = ( ( buff->buffer == PING ) ? PONG : PING );

@@ -25,6 +25,7 @@ typedef struct
 	PingPong_t buffer;
 } PingPongBuff_t;
 int16_t* get_active_buffer(PingPongBuff_t *buff);
+int16_t* get_inactive_buffer(PingPongBuff_t *buff);
 PingPong_t swap_active_buffer(PingPongBuff_t *buff);
 PingPong_t read_sample_ping_pong(PingPongBuff_t *buff, int16_t *read_value);
 void setup_ping_pong(PingPongBuff_t * buff, int16_t len, int16_t *ping, int16_t *pong, PingPong_t starting_buff);

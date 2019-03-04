@@ -26,6 +26,7 @@
 #include "aic3204.h"
 #include "ezdsp5502_mcbsp.h"
 #include "csl_mcbsp.h"
+#include "HWI_I2S.h"
 
 volatile int counter = 0;
 
@@ -45,7 +46,7 @@ void main(void)
     C55_enableInt(7); // reference technical manual, I2S2 tx interrupt
     C55_enableInt(6); // reference technical manual, I2S2 rx interrupt
 
-    audio_setup();
+    setup_HWI_I2S();
 
     // after main() exits the DSP/BIOS scheduler starts
 }
