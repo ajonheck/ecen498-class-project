@@ -21,8 +21,8 @@
 
 // external variables
 extern MCBSP_Handle aicMcbsp;
-extern MBX_Obj MBX_TSK_filter_data;
-extern MBX_Obj MBX_HWI_TX;
+extern MBX_Obj MBX_TSK_filter_data_in;
+extern MBX_Obj MBX_HWI_I2S_TX_data_in;
 
 // tx and rx channel state
 static Channel_t rx_channel = LEFT;
@@ -54,7 +54,7 @@ void setup_HWI_I2S(void)
 	setup_ping_pong(&r_tx_pingpong, LEN_AUDIO_FRAME, r_tx_ping, r_tx_pong, PING);
 }
 
-void HWI_I2S_Rx(void)
+void HWI_I2S_RX(void)
 {
 	AudioFrame_t *frame;
 	int16_t *index;
@@ -76,17 +76,17 @@ void HWI_I2S_Rx(void)
 
 	if(*index >= LEN_AUDIO_FRAME){
 		*index = 0;
-		MBX_post(&MBX_TSK_filter_data, frame, 0);
+		MBX_post(&MBX_TSK_filter_data_in, frame, 0);
 	}
 }
 
-void HWI_I2S_Tx(void)
+void HWI_I2S_TX(void)
 {
 	int16_t sample;
 	AudioFrame_t frame_in;
 
 	// If any frames are waiting to be read, put them in inactive buffer
-	if( MBX_pend(&MBX_HWI_TX, &frame_in, 0) == TRUE)
+	if( MBX_pend(&MBX_HWI_I2S_TX_data_in, &frame_in, 0) == TRUE)
 	{
 		if(frame_in.channel == LEFT)
 		{

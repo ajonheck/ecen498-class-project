@@ -7,8 +7,8 @@
 #include "HWI_I2S.h"
 #include <mbx.h>
 
-extern MBX_Obj MBX_TSK_filter_data;
-extern MBX_Obj MBX_HWI_TX;
+extern MBX_Obj MBX_TSK_filter_data_in;
+extern MBX_Obj MBX_TSK_output_mux_data_in;
 
 #define LEN_H 64
 #define LEN_DL (LEN_AUDIO_FRAME - 1 + LEN_H)
@@ -32,21 +32,21 @@ static int16_t h_high[] =
 Void tsk_filter_data(Arg value_arg)
 {
 	// Prolouge
-	int16_t *x, *y, *h, *dl;
+	int16_t *x, *h, *dl;
 	int16_t dlr[LEN_DL];
 	int16_t dll[LEN_DL];
 	AudioFrame_t frame_in;
 	AudioFrame_t frame_out;
 
-	h = h_high;
+	h = h_low;
 
 	while(1)
 	{
-		MBX_pend(&MBX_TSK_filter_data, &frame_in, ~0);
+		MBX_pend(&MBX_TSK_filter_data_in, &frame_in, ~0);
 		x = frame_in.frame;
 		dl = ( (frame_in.channel == LEFT) ? dll : dlr );
 		fir_filter(x, LEN_AUDIO_FRAME, h, LEN_H, frame_out.frame, dl);
 		frame_out.channel = frame_in.channel;
-		MBX_post(&MBX_HWI_TX, &frame_out, ~0);
+		MBX_post(&MBX_TSK_output_mux_data_in, &frame_out, ~0);
 	}
 }
