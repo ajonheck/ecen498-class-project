@@ -109,10 +109,23 @@ bios.TSK.instance("TSK_filter_data").autoAllocateStack = 1;
 bios.TSK.instance("TSK_filter_data").priority = 10;
 bios.TSK.instance("TSK_filter_data").priority = 1;
 bios.TSK.instance("TSK_filter_data").fxn = prog.extern("filterData");
-bios.MBX.create("MBX_HWI_TX");
-bios.MBX.instance("MBX_HWI_TX").messageSize = 49;
-bios.MBX.instance("MBX_HWI_TX").length = 2;
 bios.TSK.instance("TSK_filter_data").fxn = prog.extern("tsk_filter_data");
+bios.MBX.instance("MBX_TSK_filter_data").destroy();
+bios.MBX.create("MBX_HWI_I2S_TX_data_in");
+bios.MBX.instance("MBX_HWI_I2S_TX_data_in").length = 2;
+bios.MBX.instance("MBX_HWI_I2S_TX_data_in").messageSize = 49;
+bios.HWI.instance("HWI_INT6").fxn = prog.extern("HWI_I2S_RX");
+bios.HWI.instance("HWI_INT7").fxn = prog.extern("HWI_I2S_TX");
+bios.TSK.create("TSK_mux_output");
+bios.TSK.instance("TSK_mux_output").order = 5;
+bios.TSK.instance("TSK_mux_output").fxn = prog.extern("tsk_mux_output");
+bios.TSK.instance("TSK_mux_output").fxn = prog.extern("tsk_output_mux");
+bios.MBX.create("MBX_TSK_output_mux_data_in");
+bios.MBX.instance("MBX_TSK_output_mux_data_in").length = 2;
+bios.MBX.instance("MBX_TSK_output_mux_data_in").messageSize = 49;
+bios.MBX.create("MBX_TSK_filter_data_in");
+bios.MBX.instance("MBX_TSK_filter_data_in").length = 2;
+bios.MBX.instance("MBX_TSK_filter_data_in").messageSize = 49;
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {
