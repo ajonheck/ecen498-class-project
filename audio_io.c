@@ -16,7 +16,8 @@
 #include <string.h>
 #include <mbx.h>
 
-extern  MBX_Obj  MBX_TSK_filter_data;
+extern MBX_Obj MBX_TSK_filter_data;
+extern MBX_Obj MBX_HWI_TX;
 
 #define LEN_PING_PONG 48
 #define LEN_H 64
@@ -54,11 +55,11 @@ int16_t r_tx_pong[LEN_PING_PONG];
 Channel_t rx_channel = LEFT;
 Channel_t tx_channel = LEFT;
 
-AudioFrame_t l_frame;
-int16_t l_frame_index = 0;
+AudioFrame_t l_in_frame;
+int16_t l_in_frame_index = 0;
 
-AudioFrame_t r_frame;
-int16_t r_frame_index = 0;
+AudioFrame_t r_in_frame;
+int16_t r_in_frame_index = 0;
 
 int16_t h_low[] =
 {
@@ -78,8 +79,8 @@ int16_t h_high[] =
 
 void audio_setup()
 {
-	l_frame.channel = LEFT;
-	r_frame.channel = RIGHT;
+	l_in_frame.channel = LEFT;
+	r_in_frame.channel = RIGHT;
 
 	// Setupt filter write buffers; must be opposite of data buffs
 	setup_ping_pong(&l_out_pingpong, LEN_PING_PONG, l_tx_ping, l_tx_pong, PING);
@@ -96,16 +97,18 @@ void HWI_I2S_Rx(void)
 	AudioFrame_t *frame;
 	int16_t *index;
 	int16_t sample = MCBSP_read16(aicMcbsp);
+
 	if (rx_channel == LEFT)
 	{
-		index = &l_frame_index;
-		frame = &l_frame;
+		index = &l_in_frame_index;
+		frame = &l_in_frame;
 		rx_channel = RIGHT;
 	} else {
-		index = &r_frame_index;
-		frame = &r_frame;
+		index = &r_in_frame_index;
+		frame = &r_in_frame;
 		rx_channel = LEFT;
 	}
+
 	frame->frame[*index] = sample;
 	*index = *index + 1;
 
@@ -118,6 +121,20 @@ void HWI_I2S_Rx(void)
 void HWI_I2S_Tx(void)
 {
 	int16_t sample;
+	AudioFrame_t frame_in;
+
+	if( MBX_pend(&MBX_HWI_TX, &frame_in, 0) == TRUE)
+	{
+		if(frame_in.channel == LEFT)
+		{
+			memcpy(get_inactive_buffer(&l_tx_pingpong), frame_in.frame, sizeof(int16_t) * 48);
+		}
+		else
+		{
+			memcpy(get_inactive_buffer(&r_tx_pingpong), frame_in.frame, sizeof(int16_t) * 48);
+		}
+	}
+
 	if (tx_channel == LEFT)
 	{
 		read_sample_ping_pong(&l_tx_pingpong, &sample);
@@ -138,6 +155,7 @@ Void filterData(Arg value_arg)
 	int16_t dlr[LEN_DL];
 	int16_t dll[LEN_DL];
 	AudioFrame_t frame_in;
+	AudioFrame_t frame_out;
 
 	h = h_low;
 
@@ -157,15 +175,10 @@ Void filterData(Arg value_arg)
 			dl = dlr;
 		}
 
-		fir_filter(x, LEN_PING_PONG, h, LEN_H, y, dl);
+		fir_filter(x, LEN_PING_PONG, h, LEN_H, frame_out.frame, dl);
 
-		if(frame_in.channel == LEFT)
-		{
-			swap_active_buffer(&l_out_pingpong);
-		}
-		else
-		{
-			swap_active_buffer(&r_out_pingpong);
-		}
+		frame_out.channel = frame_in.channel;
+
+		MBX_post(&MBX_HWI_TX, &frame_out, ~0);
 	}
 }

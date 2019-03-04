@@ -109,6 +109,9 @@ bios.TSK.instance("TSK_filter_data").autoAllocateStack = 1;
 bios.TSK.instance("TSK_filter_data").priority = 10;
 bios.TSK.instance("TSK_filter_data").priority = 1;
 bios.TSK.instance("TSK_filter_data").fxn = prog.extern("filterData");
+bios.MBX.create("MBX_HWI_TX");
+bios.MBX.instance("MBX_HWI_TX").messageSize = 49;
+bios.MBX.instance("MBX_HWI_TX").length = 2;
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {
