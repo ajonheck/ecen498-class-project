@@ -126,6 +126,7 @@ bios.MBX.instance("MBX_TSK_output_mux_data_in").messageSize = 49;
 bios.MBX.create("MBX_TSK_filter_data_in");
 bios.MBX.instance("MBX_TSK_filter_data_in").length = 2;
 bios.MBX.instance("MBX_TSK_filter_data_in").messageSize = 49;
+bios.MBX.create("MBX_TSK_output_mux_source");
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {
