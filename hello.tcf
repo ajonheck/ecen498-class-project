@@ -98,6 +98,17 @@ bios.SWI.instance("SWI_filter_thread").mailbox = 1;
 bios.TSK.instance("TSK_idle").order = 1;
 bios.TSK.instance("task").order = 2;
 bios.SWI.instance("SWI_filter_thread").mailbox = 0;
+bios.MBX.create("MBX_TSK_filter_data");
+bios.MBX.instance("MBX_TSK_filter_data").messageSize = 49;
+bios.MBX.instance("MBX_TSK_filter_data").length = 2;
+bios.SWI.instance("SWI_filter_thread").destroy();
+bios.TSK.create("TSK_filter_data");
+bios.TSK.instance("TSK_filter_data").order = 3;
+bios.TSK.instance("TSK_filter_data").fxn = prog.extern("TSK_filter_data");
+bios.TSK.instance("TSK_filter_data").autoAllocateStack = 1;
+bios.TSK.instance("TSK_filter_data").priority = 10;
+bios.TSK.instance("TSK_filter_data").priority = 1;
+bios.TSK.instance("TSK_filter_data").fxn = prog.extern("filterData");
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {

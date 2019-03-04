@@ -14,27 +14,26 @@
 #include <Swi.h>
 #include "fir.h"
 #include <string.h>
+#include <mbx.h>
 
-extern  SWI_Obj  SWI_filter_thread;
+extern  MBX_Obj  MBX_TSK_filter_data;
 
-#define LEN_PING_PONG 2
+#define LEN_PING_PONG 48
 #define LEN_H 64
 #define LEN_DL (LEN_PING_PONG - 1 + LEN_H)
 typedef enum
 {
-	LEFT,
-	RIGHT
+	LEFT = 1,
+	RIGHT = 2
 }Channel_t;
 
+typedef struct
+{
+	Channel_t channel;
+	int16_t frame[48];
+}AudioFrame_t;
+
 extern MCBSP_Handle aicMcbsp;
-
-// buff for rx write
-PingPongBuff_t l_rx_pingpong;
-PingPongBuff_t r_rx_pingpong;
-
-// buff for filter read
-PingPongBuff_t l_data_pingpong;
-PingPongBuff_t r_data_pingpong;
 
 // buff for filter write
 PingPongBuff_t l_out_pingpong;
@@ -44,23 +43,22 @@ PingPongBuff_t r_out_pingpong;
 PingPongBuff_t l_tx_pingpong;
 PingPongBuff_t r_tx_pingpong;
 
-// Setup tx ping-pong buff
+// Setup rx ping-pong buff
 int16_t l_tx_ping[LEN_PING_PONG];
 int16_t l_tx_pong[LEN_PING_PONG];
 
 int16_t r_tx_ping[LEN_PING_PONG];
 int16_t r_tx_pong[LEN_PING_PONG];
 
-// Setup rx ping-pong buff
-int16_t l_rx_ping[LEN_PING_PONG];
-int16_t l_rx_pong[LEN_PING_PONG];
-
-int16_t r_rx_ping[LEN_PING_PONG];
-int16_t r_rx_pong[LEN_PING_PONG];
-
 // Keep track of which channel to write to for tx and rx
 Channel_t rx_channel = LEFT;
 Channel_t tx_channel = LEFT;
+
+AudioFrame_t l_frame;
+int16_t l_frame_index = 0;
+
+AudioFrame_t r_frame;
+int16_t r_frame_index = 0;
 
 int16_t h_low[] =
 {
@@ -78,18 +76,10 @@ int16_t h_high[] =
        294,    243,    197,    154,    116,     81,     49,     20,     -7,    -31,    -53,    -73,    -90,   -106,   -121,   -133,
 };
 
-int16_t dll[LEN_DL];
-int16_t dlr[LEN_DL];
-
 void audio_setup()
 {
-	// Setup rx buffers
-	setup_ping_pong(&l_rx_pingpong, LEN_PING_PONG, l_rx_ping, l_rx_pong, PING);
-	setup_ping_pong(&r_rx_pingpong, LEN_PING_PONG, r_rx_ping, r_rx_pong, PING);
-
-	// Setup filter read buffers; must be oppposite of rx buffs
-	setup_ping_pong(&l_data_pingpong, LEN_PING_PONG, l_rx_ping, l_rx_pong, PONG);
-	setup_ping_pong(&r_data_pingpong, LEN_PING_PONG, r_rx_ping, r_rx_pong, PONG);
+	l_frame.channel = LEFT;
+	r_frame.channel = RIGHT;
 
 	// Setupt filter write buffers; must be opposite of data buffs
 	setup_ping_pong(&l_out_pingpong, LEN_PING_PONG, l_tx_ping, l_tx_pong, PING);
@@ -99,29 +89,29 @@ void audio_setup()
 	setup_ping_pong(&l_tx_pingpong, LEN_PING_PONG, l_tx_ping, l_tx_pong, PONG);
 	setup_ping_pong(&r_tx_pingpong, LEN_PING_PONG, r_tx_ping, r_tx_pong, PONG);
 
-	memset(dll, 0, sizeof(int16_t) * LEN_DL);
-	memset(dlr, 0, sizeof(int16_t) * LEN_DL);
-
 }
 
 void HWI_I2S_Rx(void)
 {
+	AudioFrame_t *frame;
+	int16_t *index;
 	int16_t sample = MCBSP_read16(aicMcbsp);
 	if (rx_channel == LEFT)
 	{
-		write_sample_ping_pong(&l_rx_pingpong, sample);
+		index = &l_frame_index;
+		frame = &l_frame;
 		rx_channel = RIGHT;
-	}
-	else
-	{
-		// Check if the buffer switches
-		PingPong_t previous_buffer = r_rx_pingpong.buffer;
-		if( previous_buffer != write_sample_ping_pong(&r_rx_pingpong, sample) )
-		{
-			// Fire off SWI since the last right buff is now written
-			SWI_post(&SWI_filter_thread);
-		}
+	} else {
+		index = &r_frame_index;
+		frame = &r_frame;
 		rx_channel = LEFT;
+	}
+	frame->frame[*index] = sample;
+	*index = *index + 1;
+
+	if(*index >= 48){
+		*index = 0;
+		MBX_post(&MBX_TSK_filter_data, frame, 0);
 	}
 }
 
@@ -141,29 +131,41 @@ void HWI_I2S_Tx(void)
 	MCBSP_write16(aicMcbsp,sample);
 }
 
-void SWI_filter_data(void)
+Void filterData(Arg value_arg)
 {
-	int16_t *h = h_high;
+	// Prolouge
+	int16_t *x, *y, *h, *dl;
+	int16_t dlr[LEN_DL];
+	int16_t dll[LEN_DL];
+	AudioFrame_t frame_in;
 
-	// filter left channel
-	int16_t *x = get_active_buffer(&l_data_pingpong);
-	int16_t *y = get_active_buffer(&l_out_pingpong);
-	int16_t *delayline = dll;
+	h = h_low;
 
-	fir_filter(x, LEN_PING_PONG, h, LEN_H, y, delayline);
+	while(1)
+	{
+		MBX_pend(&MBX_TSK_filter_data, &frame_in, ~0);
+		x = frame_in.frame;
 
-	swap_active_buffer(&l_data_pingpong);
-	swap_active_buffer(&l_out_pingpong);
+		if(frame_in.channel == LEFT)
+		{
+			y = get_active_buffer(&l_out_pingpong);
+			dl = dll;
+		}
+		else
+		{
+			y = get_active_buffer(&r_out_pingpong);
+			dl = dlr;
+		}
 
-	// filter right channel
-	x = get_active_buffer(&r_data_pingpong);
-	y = get_active_buffer(&r_out_pingpong);
-	delayline = dlr;
+		fir_filter(x, LEN_PING_PONG, h, LEN_H, y, dl);
 
-	fir_filter(x, LEN_PING_PONG, h, LEN_H, y, delayline);
-
-	swap_active_buffer(&r_data_pingpong);
-	swap_active_buffer(&r_out_pingpong);
-
+		if(frame_in.channel == LEFT)
+		{
+			swap_active_buffer(&l_out_pingpong);
+		}
+		else
+		{
+			swap_active_buffer(&r_out_pingpong);
+		}
+	}
 }
-
