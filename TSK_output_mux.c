@@ -11,15 +11,11 @@
 #include "HWI_I2S.h"
 #include <mbx.h>
 #include "nco.h"
+#include "TSK_output_mux.h"
 
 extern MBX_Obj MBX_HWI_I2S_TX_data_in;
 extern MBX_Obj MBX_TSK_output_mux_data_in;
 extern MBX_Obj MBX_TSK_output_mux_source;
-
-typedef enum {
-	SINE = 1,
-	FILTER = 2
-}MuxSource_t;
 
 static int16_t sine_wave_lut[] =
 {
@@ -63,7 +59,7 @@ void tsk_output_mux(void)
 	AudioFrame_t frame;
 
 	NCO_t nco;
-	configureNCO(&nco, 32, 9, sine_wave_lut, 0, 1000, 48000);
+	configureNCO(&nco, 32, 9, sine_wave_lut, 2, 1000, 48000);
 	MuxSource_t source = FILTER;
 	MuxSource_t new_source;
 	int16_t frame_counter;

@@ -8,10 +8,17 @@
 #include <mbx.h>
 
 extern MBX_Obj MBX_TSK_filter_data_in;
+extern MBX_Obj MBX_TSK_filter_data_swap_h;
 extern MBX_Obj MBX_TSK_output_mux_data_in;
 
 #define LEN_H 64
 #define LEN_DL (LEN_AUDIO_FRAME - 1 + LEN_H)
+
+typedef enum
+{
+	LPF = 0,
+	HPF = 1
+}FilterCoeffs_t;
 
 static int16_t h_low[] =
 {
@@ -31,21 +38,44 @@ static int16_t h_high[] =
 
 Void tsk_filter_data(Arg value_arg)
 {
-	// Prolouge
-	int16_t *x, *h, *dl;
+	// Thread variables
+	int16_t *h, *dl;
 	int16_t dlr[LEN_DL];
 	int16_t dll[LEN_DL];
+	int16_t update_filter;
 	AudioFrame_t frame_in;
 	AudioFrame_t frame_out;
+	FilterCoeffs_t filter_coeffs;
 
+	// initialization
+	filter_coeffs = LPF;
 	h = h_low;
+	memset(dll, 0, sizeof(LEN_DL));
+	memset(dlr, 0, sizeof(LEN_DL));
 
 	while(1)
 	{
+		// wait for frame
 		MBX_pend(&MBX_TSK_filter_data_in, &frame_in, ~0);
-		x = frame_in.frame;
+
+		// perform filter update if necessary
+    	if (MBX_pend(&MBX_TSK_filter_data_swap_h, &update_filter, 0) == TRUE)
+    	{
+    		if(update_filter == 1)
+    		{
+    		   	filter_coeffs = ( ( filter_coeffs == LPF ) ? HPF : LPF );
+    		   	h = (filter_coeffs == LPF ? h_low : h_high );
+    		}
+
+    	}
+
+		// determine delay line
 		dl = ( (frame_in.channel == LEFT) ? dll : dlr );
-		fir_filter(x, LEN_AUDIO_FRAME, h, LEN_H, frame_out.frame, dl);
+
+		// perform filtering
+		fir_filter(frame_in.frame, LEN_AUDIO_FRAME, h, LEN_H, frame_out.frame, dl);
+
+		// set channel and post frame to mux
 		frame_out.channel = frame_in.channel;
 		MBX_post(&MBX_TSK_output_mux_data_in, &frame_out, ~0);
 	}

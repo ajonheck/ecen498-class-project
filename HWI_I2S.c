@@ -45,7 +45,7 @@ static int16_t l_tx_pong[LEN_AUDIO_FRAME];
 static int16_t r_tx_ping[LEN_AUDIO_FRAME];
 static int16_t r_tx_pong[LEN_AUDIO_FRAME];
 
-void setup_HWI_I2S(void)
+void HWI_I2S_setup(void)
 {
 	l_in_frame.channel = LEFT;
 	r_in_frame.channel = RIGHT;

@@ -27,6 +27,7 @@
 #include "ezdsp5502_mcbsp.h"
 #include "csl_mcbsp.h"
 #include "HWI_I2S.h"
+#include "IDL_poll_switches.h"
 
 volatile int counter = 0;
 
@@ -46,7 +47,10 @@ void main(void)
     C55_enableInt(7); // reference technical manual, I2S2 tx interrupt
     C55_enableInt(6); // reference technical manual, I2S2 rx interrupt
 
-    setup_HWI_I2S();
+    IDL_poll_siwtches_setup();
+
+    HWI_I2S_setup();
+
 
     // after main() exits the DSP/BIOS scheduler starts
 }

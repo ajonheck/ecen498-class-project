@@ -127,6 +127,10 @@ bios.MBX.create("MBX_TSK_filter_data_in");
 bios.MBX.instance("MBX_TSK_filter_data_in").length = 2;
 bios.MBX.instance("MBX_TSK_filter_data_in").messageSize = 49;
 bios.MBX.create("MBX_TSK_output_mux_source");
+bios.IDL.create("IDL_setup_switches");
+bios.IDL.instance("IDL_setup_switches").order = 7;
+bios.IDL.instance("IDL_setup_switches").fxn = prog.extern("IDL_poll_switches");
+bios.MBX.create("MBX_TSK_filter_data_swap_h");
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {

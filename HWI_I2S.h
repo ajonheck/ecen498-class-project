@@ -26,6 +26,6 @@ typedef struct
 	int16_t frame[LEN_AUDIO_FRAME];
 }AudioFrame_t;
 
-void setup_HWI_I2S(void);
+void HWI_I2S_setup(void);
 
 #endif /* HWI_I2S_H_ */
