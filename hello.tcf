@@ -131,6 +131,12 @@ bios.IDL.create("IDL_setup_switches");
 bios.IDL.instance("IDL_setup_switches").order = 7;
 bios.IDL.instance("IDL_setup_switches").fxn = prog.extern("IDL_poll_switches");
 bios.MBX.create("MBX_TSK_filter_data_swap_h");
+bios.TSK.create("TSK_LED_controller");
+bios.TSK.instance("TSK_LED_controller").order = 6;
+bios.MBX.create("MBX_TSK_LED_controller_input");
+bios.MBX.instance("MBX_TSK_LED_controller_input").messageSize = 2;
+bios.TSK.instance("TSK_LED_controller").fxn = prog.extern("tsk_LED_controller", "asm");
+bios.TSK.instance("TSK_LED_controller").fxn = prog.extern("tsk_LED_controller");
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {

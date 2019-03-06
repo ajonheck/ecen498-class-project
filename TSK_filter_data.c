@@ -6,10 +6,12 @@
 #include "fir.h"
 #include "HWI_I2S.h"
 #include <mbx.h>
+#include "TSK_LED_controller.h"
 
 extern MBX_Obj MBX_TSK_filter_data_in;
 extern MBX_Obj MBX_TSK_filter_data_swap_h;
 extern MBX_Obj MBX_TSK_output_mux_data_in;
+extern MBX_Obj MBX_TSK_LED_controller_input;
 
 #define LEN_H 64
 #define LEN_DL (LEN_AUDIO_FRAME - 1 + LEN_H)
@@ -46,10 +48,17 @@ Void tsk_filter_data(Arg value_arg)
 	AudioFrame_t frame_in;
 	AudioFrame_t frame_out;
 	FilterCoeffs_t filter_coeffs;
+   	LEDdata_t lpf_msg, hpf_msg;
 
 	// initialization
 	filter_coeffs = LPF;
 	h = h_low;
+
+	lpf_msg.led_id = LED_LPF;
+	lpf_msg.state = ON;
+	hpf_msg.led_id = LED_HPF;
+	hpf_msg.state = OFF;
+
 	memset(dll, 0, sizeof(LEN_DL));
 	memset(dlr, 0, sizeof(LEN_DL));
 
@@ -63,10 +72,23 @@ Void tsk_filter_data(Arg value_arg)
     	{
     		if(update_filter == 1)
     		{
-    		   	filter_coeffs = ( ( filter_coeffs == LPF ) ? HPF : LPF );
-    		   	h = (filter_coeffs == LPF ? h_low : h_high );
+    		   	if(filter_coeffs == LPF)
+    		   	{
+    		   		filter_coeffs = HPF;
+    		   		h = h_high;
+    		   		lpf_msg.state = OFF;
+    		   		hpf_msg.state = ON;
+    		   	}
+    		   	else
+    		   	{
+    		   		filter_coeffs = LPF;
+    		   		h = h_low;
+    		   		lpf_msg.state = ON;
+    		   		hpf_msg.state = OFF;
+    		   	}
+    		   	MBX_post(&MBX_TSK_LED_controller_input, &lpf_msg, 0);
+    		   	MBX_post(&MBX_TSK_LED_controller_input, &hpf_msg, 0);
     		}
-
     	}
 
 		// determine delay line

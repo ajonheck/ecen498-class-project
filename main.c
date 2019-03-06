@@ -28,6 +28,7 @@
 #include "csl_mcbsp.h"
 #include "HWI_I2S.h"
 #include "IDL_poll_switches.h"
+#include "TSK_LED_controller.h"
 
 volatile int counter = 0;
 
@@ -51,6 +52,7 @@ void main(void)
 
     HWI_I2S_setup();
 
+    TSK_LED_controller_setup();
 
     // after main() exits the DSP/BIOS scheduler starts
 }
