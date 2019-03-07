@@ -20,8 +20,8 @@ typedef enum
 
 typedef enum
 {
-	ON = LOW,
-	OFF = HIGH
+	LED_ON = LOW,
+	LED_OFF = HIGH
 }LEDstate_t;
 
 typedef struct

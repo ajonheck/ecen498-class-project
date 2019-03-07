@@ -55,12 +55,15 @@ Void tsk_filter_data(Arg value_arg)
 	h = h_low;
 
 	lpf_msg.led_id = LED_LPF;
-	lpf_msg.state = ON;
+	lpf_msg.state = LED_ON;
 	hpf_msg.led_id = LED_HPF;
-	hpf_msg.state = OFF;
+	hpf_msg.state = LED_OFF;
 
 	memset(dll, 0, sizeof(LEN_DL));
 	memset(dlr, 0, sizeof(LEN_DL));
+
+   	MBX_post(&MBX_TSK_LED_controller_input, &lpf_msg, 0);
+   	MBX_post(&MBX_TSK_LED_controller_input, &hpf_msg, 0);
 
 	while(1)
 	{
@@ -76,15 +79,15 @@ Void tsk_filter_data(Arg value_arg)
     		   	{
     		   		filter_coeffs = HPF;
     		   		h = h_high;
-    		   		lpf_msg.state = OFF;
-    		   		hpf_msg.state = ON;
+    		   		lpf_msg.state = LED_OFF;
+    		   		hpf_msg.state = LED_ON;
     		   	}
     		   	else
     		   	{
     		   		filter_coeffs = LPF;
     		   		h = h_low;
-    		   		lpf_msg.state = ON;
-    		   		hpf_msg.state = OFF;
+    		   		lpf_msg.state = LED_ON;
+    		   		hpf_msg.state = LED_OFF;
     		   	}
     		   	MBX_post(&MBX_TSK_LED_controller_input, &lpf_msg, 0);
     		   	MBX_post(&MBX_TSK_LED_controller_input, &hpf_msg, 0);

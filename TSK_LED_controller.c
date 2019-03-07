@@ -22,10 +22,10 @@ void TSK_LED_controller_setup(void)
     EZDSP5502_I2CGPIO_configLine(  LED_FILT, OUT );
 
     /* Turn off all LEDs by line*/
-    EZDSP5502_I2CGPIO_writeLine(LED_LPF, OFF);
-    EZDSP5502_I2CGPIO_writeLine(LED_HPF, OFF);
-    EZDSP5502_I2CGPIO_writeLine(LED_SINE, OFF);
-    EZDSP5502_I2CGPIO_writeLine(LED_FILT, OFF);
+    EZDSP5502_I2CGPIO_writeLine(LED_LPF, LED_OFF);
+    EZDSP5502_I2CGPIO_writeLine(LED_HPF, LED_ON);
+    EZDSP5502_I2CGPIO_writeLine(LED_SINE, LED_ON);
+    EZDSP5502_I2CGPIO_writeLine(LED_FILT, LED_ON);
 }
 
 void tsk_LED_controller(void)
@@ -34,33 +34,21 @@ void tsk_LED_controller(void)
 	LEDdata_t *ptr;
 
 	lpf.led_id = LED_LPF;
-	lpf.state = OFF;
+	lpf.state = LED_OFF;
 	hpf.led_id = LED_HPF;
-	hpf.state = OFF;
+	hpf.state = LED_OFF;
 	sine.led_id = LED_SINE;
-	sine.state = OFF;
+	sine.state = LED_OFF;
 	filt.led_id = LED_FILT;
-	filt.state = OFF;
+	filt.state = LED_OFF;
 
 	while(1)
 	{
-		MBX_pend(&MBX_TSK_LED_controller_input, &msg, ~0);
-		switch(msg.led_id)
-		{
-			case LED_LPF:
-				ptr = &lpf;
-				break;
-			case LED_HPF:
-				ptr = &hpf;
-				break;
-			case LED_SINE:
-				ptr = &sine;
-				break;
-			case LED_FILT:
-				ptr = &filt;
-				break;
-		}
-		ptr->state = msg.state;
-		EZDSP5502_I2CGPIO_writeLine(ptr->led_id, ptr->state);
+	   	MBX_pend(&MBX_TSK_LED_controller_input, &msg, ~0);
+	   	if(msg.led_id == LED_HPF)
+	   	{
+	   		msg.state = (msg.state == LED_ON) ? LED_OFF : LED_ON;
+	   		EZDSP5502_I2CGPIO_writeLine(msg.led_id, msg.state);
+	   	}
 	}
 }
