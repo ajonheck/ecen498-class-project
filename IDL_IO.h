@@ -1,12 +1,12 @@
 /*
- * TSK_LED_controller.h
+ * IDL_IO.h
  *
  *  Created on: Mar 6, 2019
  *      Author: Andy
  */
 
-#ifndef TSK_LED_CONTROLLER_H_
-#define TSK_LED_CONTROLLER_H_
+#ifndef IDL_IO_H_
+#define IDL_IO_H_
 
 #include "ezdsp5502_i2cgpio.h"
 
@@ -30,6 +30,7 @@ typedef struct
 	LEDstate_t state;
 }LEDdata_t;
 
-void TSK_LED_controller_setup(void);
 
-#endif /* TSK_LED_CONTROLLER_H_ */
+void IDL_IO_setup();
+
+#endif /* IDL_IO_H_ */

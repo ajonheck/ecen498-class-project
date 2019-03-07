@@ -59,7 +59,7 @@ void tsk_output_mux(void)
 	AudioFrame_t frame;
 
 	NCO_t nco;
-	configureNCO(&nco, 32, 9, sine_wave_lut, 2, 1000, 48000);
+	configureNCO(&nco, 32, 9, sine_wave_lut, 5, 1000, 48000);
 	MuxSource_t source = FILTER;
 	MuxSource_t new_source;
 	int16_t frame_counter;
