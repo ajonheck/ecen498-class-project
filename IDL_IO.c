@@ -27,13 +27,13 @@ extern MBX_Obj MBX_IDL_control_LED_input;
 
 void IDL_IO_setup(){
 
-    EZDSP5502_I2CGPIO_configLine(  SW_FILT, IN );
-    EZDSP5502_I2CGPIO_configLine(  SW_SINE, IN );
+    EZDSP5502_I2CGPIO_configLine( SW_FILT, IN );
+    EZDSP5502_I2CGPIO_configLine( SW_SINE, IN );
     filter_switch = LOW;
     sine_switch = LOW;
 
-    EZDSP5502_I2CGPIO_configLine(  LED_LPF, OUT );
-    EZDSP5502_I2CGPIO_configLine(LED_HPF, OUT );
+    EZDSP5502_I2CGPIO_configLine( LED_LPF, OUT );
+    EZDSP5502_I2CGPIO_configLine( LED_HPF, OUT );
 }
 
 void idl_control_LED()
@@ -49,6 +49,7 @@ void idl_poll_switches()
 {
 	int16_t reading;
 
+	// get filter switch reading and determine if a press event occured
     reading = EZDSP5502_I2CGPIO_readLine(SW_FILT);
     if(reading != filter_switch && filter_switch == HIGH)
     {
@@ -57,6 +58,8 @@ void idl_poll_switches()
     }
     filter_switch = reading;
 
+
+	// get sine switch reading and determine if a press event occured
     reading = EZDSP5502_I2CGPIO_readLine(SW_SINE);
     if(reading != sine_switch && sine_switch == HIGH)
     {

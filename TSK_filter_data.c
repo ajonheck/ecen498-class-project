@@ -75,6 +75,7 @@ Void tsk_filter_data(Arg value_arg)
 	filter_coeffs = LPF;
 	h = h_low;
 
+	// setup LEDs
    	lpf_msg.led_id = LED_LPF;
    	hpf_msg.led_id = LED_HPF;
    	lpf_msg.state = LED_ON;
@@ -90,7 +91,7 @@ Void tsk_filter_data(Arg value_arg)
 		// wait for frame
 		MBX_pend(&MBX_TSK_filter_data_in, &frame_in, ~0);
 
-		// perform filter update if necessary
+		// perform filter update and LED change if needed
     	if (MBX_pend(&MBX_TSK_filter_data_swap_h, &update_filter, 0) == TRUE)
     	{
     		if(update_filter == 1)
@@ -122,7 +123,7 @@ Void tsk_filter_data(Arg value_arg)
 		fir_filter(frame_in.frame, LEN_AUDIO_FRAME, h, LEN_H, frame_out.frame, dl);
 
 		// set channel and post frame to mux
-		frame_out.channel = frame_in.channel;
+		frame_out.channel = frame_in.channel
 		MBX_post(&MBX_TSK_output_mux_data_in, &frame_out, ~0);
 	}
 }
