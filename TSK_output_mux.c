@@ -58,13 +58,16 @@ void tsk_output_mux(void)
 	// Prolouge
 	AudioFrame_t frame;
 
+	// Setup NCO
 	NCO_t nco;
-	configureNCO(&nco, 32, 9, sine_wave_lut, 2, 1000, 48000);
+	configureNCO(&nco, 32, 9, sine_wave_lut, 5, 1000, 48000);
+
 	MuxSource_t source = FILTER;
 	MuxSource_t new_source;
 	int16_t frame_counter;
 	while(1)
 	{
+		// Check if a press event has occured
 		if(MBX_pend(&MBX_TSK_output_mux_source, &new_source, 0) == TRUE)
 		{
 			if(new_source == SINE)
@@ -74,19 +77,19 @@ void tsk_output_mux(void)
 			}
 		}
 
+		// Wait for incoming data
 		MBX_pend(&MBX_TSK_output_mux_data_in, &frame, ~0);
 
-		if(source == FILTER){
-			MBX_post(&MBX_HWI_I2S_TX_data_in, &frame, ~0);
-		}
-		else
+		if(source == SINE)
 		{
+			// generate sine frame
 			int16_t i;
 			for(i = 0; i < LEN_AUDIO_FRAME; i ++)
 			{
 				 frame.frame[i] = getNextValue(&nco);
 			}
-			MBX_post(&MBX_HWI_I2S_TX_data_in, &frame, ~0);
+
+			// after 1 second stop using sine wave source
 			frame_counter ++;
 			if(frame_counter >= 1000)
 			{
@@ -94,5 +97,7 @@ void tsk_output_mux(void)
 				source = FILTER;
 			}
 		}
+
+		MBX_post(&MBX_HWI_I2S_TX_data_in, &frame, 0);
 	}
 }

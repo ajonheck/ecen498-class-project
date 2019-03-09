@@ -13,6 +13,7 @@
 #include "TSK_output_mux.h"
 #include <mbx.h>
 #include "hellocfg.h"
+#include "IDL_IO.h"
 
 #define SW_FILT (SW1)
 #define SW_SINE (SW0)
@@ -22,18 +23,33 @@ static int16_t sine_switch;
 
 extern MBX_Obj MBX_TSK_filter_data_swap_h;
 extern MBX_Obj MBX_TSK_output_mux_source;
+extern MBX_Obj MBX_IDL_control_LED_input;
 
-void IDL_poll_siwtches_setup(){
-    EZDSP5502_I2CGPIO_configLine(  SW_FILT, IN );
-    EZDSP5502_I2CGPIO_configLine(  SW_SINE, IN );
-    filter_switch = EZDSP5502_I2CGPIO_readLine(SW_FILT);
-    sine_switch = EZDSP5502_I2CGPIO_readLine(SW_SINE);
+void IDL_IO_setup(){
+
+    EZDSP5502_I2CGPIO_configLine( SW_FILT, IN );
+    EZDSP5502_I2CGPIO_configLine( SW_SINE, IN );
+    filter_switch = LOW;
+    sine_switch = LOW;
+
+    EZDSP5502_I2CGPIO_configLine( LED_LPF, OUT );
+    EZDSP5502_I2CGPIO_configLine( LED_HPF, OUT );
 }
 
-void IDL_poll_switches()
+void idl_control_LED()
+{
+	LEDdata_t led_msg;
+	if(MBX_pend(&MBX_IDL_control_LED_input, &led_msg, 0) == TRUE)
+	{
+		EZDSP5502_I2CGPIO_writeLine(led_msg.led_id, led_msg.state);
+	}
+}
+
+void idl_poll_switches()
 {
 	int16_t reading;
 
+	// get filter switch reading and determine if a press event occured
     reading = EZDSP5502_I2CGPIO_readLine(SW_FILT);
     if(reading != filter_switch && filter_switch == HIGH)
     {
@@ -42,6 +58,8 @@ void IDL_poll_switches()
     }
     filter_switch = reading;
 
+
+	// get sine switch reading and determine if a press event occured
     reading = EZDSP5502_I2CGPIO_readLine(SW_SINE);
     if(reading != sine_switch && sine_switch == HIGH)
     {
