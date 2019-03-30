@@ -26,8 +26,8 @@
 #include "aic3204.h"
 #include "ezdsp5502_mcbsp.h"
 #include "csl_mcbsp.h"
-
-extern void audioProcessingInit(void);
+#include "HWI_I2S.h"
+#include "IDL_IO.h"
 
 volatile int counter = 0;
 
@@ -47,7 +47,9 @@ void main(void)
     C55_enableInt(7); // reference technical manual, I2S2 tx interrupt
     C55_enableInt(6); // reference technical manual, I2S2 rx interrupt
 
-    audioProcessingSetup();
+    IDL_IO_setup();
+
+    HWI_I2S_setup();
 
     // after main() exits the DSP/BIOS scheduler starts
 }
