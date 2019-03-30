@@ -158,6 +158,21 @@ bios.IDL.create("IDL_poll_switches");
 bios.IDL.instance("IDL_poll_switches").order = 8;
 bios.IDL.instance("IDL_poll_switches").fxn = prog.extern("IDL_poll_switches");
 bios.IDL.instance("IDL_poll_switches").fxn = prog.extern("idl_poll_switches");
+bios.TSK.instance("TSK_filter_data").order = 1;
+bios.TSK.instance("TSK_idle").order = 2;
+bios.TSK.instance("task").order = 3;
+bios.TSK.instance("TSK_filter_data").priority = 3;
+bios.TSK.instance("TSK_mux_output").order = 1;
+bios.TSK.instance("TSK_filter_data").order = 2;
+bios.TSK.instance("TSK_idle").order = 3;
+bios.TSK.instance("task").order = 4;
+bios.TSK.instance("TSK_mux_output").priority = 3;
+bios.TSK.create("TSK_calculate_pwr");
+bios.TSK.instance("TSK_calculate_pwr").order = 6;
+bios.TSK.instance("TSK_calculate_pwr").fxn = prog.extern("tsk_calculate_pwr");
+bios.MBX.create("MBX_TSK_calculate_pwr_data_in");
+bios.MBX.instance("MBX_TSK_calculate_pwr_data_in").messageSize = 49;
+bios.MBX.instance("MBX_TSK_calculate_pwr_data_in").length = 2;
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {
