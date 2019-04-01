@@ -34,6 +34,8 @@ void main(void)
 
     IDL_IO_setup();
 
+    idl_disp_power_init();
+
     HWI_I2S_setup();
 
     // after main() exits the DSP/BIOS scheduler starts
