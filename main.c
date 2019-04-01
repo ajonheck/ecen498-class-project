@@ -13,6 +13,7 @@
 #include "csl_mcbsp.h"
 #include "HWI_I2S.h"
 #include "IDL_IO.h"
+#include "IDL_disp.h"
 
 volatile int counter = 0;
 
