@@ -45,22 +45,6 @@ void tsk_calculate_pwr(Arg value_arg)
 		// wait for the second frame
 		MBX_pend(&MBX_TSK_calculate_pwr_data_in, &f2, ~0);
 
-		MBX_pend(&MBX_TSK_calculate_pwr_data_in, &fin, ~0);
-
-		for(i = 0; i < LEN_AUDIO_FRAME; i ++ )
-		{
-			int16_t t = _sadd((f1[i] >> 1), (fin[i] >> 1));
-			f1[i] = t;
-		}
-
-
-		MBX_pend(&MBX_TSK_calculate_pwr_data_in, &fin, ~0);
-
-		for(i = 0; i < LEN_AUDIO_FRAME; i ++ )
-		{
-			f2[i] = _sadd(f2[i] >> 1, fin[i] >> 1);
-		}
-
 		power = pwr(f1.frame, f2.frame, LEN_AUDIO_FRAME);
 		MBX_post(&MBX_IDL_disp_power_data_in, &power, 0);
 	}
