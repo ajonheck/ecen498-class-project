@@ -353,7 +353,7 @@ void FFT_initialize(void)
   rt_InitInfAndNaN(sizeof(real_T));
 
   /* initialize error status */
-  rtmSetErrorStatus(FFT_M, (NULL));
+  rtmSetErrorStatus(FFT_M, (0x0));
 
   /* external inputs */
   (void)memset(&FFT_U, 0, sizeof(ExtU_FFT_T));

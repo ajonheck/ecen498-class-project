@@ -78,7 +78,6 @@ void HWI_I2S_RX(void)
 	if(*index >= LEN_AUDIO_FRAME){
 		*index = 0;
 		MBX_post(&MBX_TSK_filter_data_in, frame, 0);
-		MBX_post(&MBX_TSK_calculate_pwr_data_in, frame, 0);
 	}
 }
 

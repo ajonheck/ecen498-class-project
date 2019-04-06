@@ -197,6 +197,15 @@ bios.TSK.instance("TSK_idle").stackSize = 256;
 bios.IDL.create("IDL_disp_power");
 bios.IDL.instance("IDL_disp_power").order = 9;
 bios.IDL.instance("IDL_disp_power").fxn = prog.extern("idl_disp_power");
+bios.LOG.instance("trace").destroy();
+bios.MBX.instance("MBX_IDL_disp_power_data_in").destroy();
+bios.MBX.create("MBX_IDL_disp_fft_data_in");
+bios.MBX.instance("MBX_IDL_disp_fft_data_in").messageSize = 128;
+bios.MBX.instance("MBX_IDL_disp_fft_data_in").messageSize = 96;
+bios.MBX.instance("MBX_TSK_calculate_pwr_data_in").messageSize = 256;
+bios.MBX.instance("MBX_TSK_calculate_pwr_data_in").length = 1;
+bios.MBX.instance("MBX_TSK_calculate_pwr_data_in").messageSize = 49;
+bios.MBX.instance("MBX_TSK_calculate_pwr_data_in").length = 2;
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {

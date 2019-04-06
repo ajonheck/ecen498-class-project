@@ -127,6 +127,7 @@ Void tsk_filter_data(Arg value_arg)
 
 		// set channel and post frame to mux
 		frame_out.channel = frame_in.channel;
-		MBX_post(&MBX_TSK_output_mux_data_in, &frame_out, ~0);
+		MBX_post(&MBX_TSK_output_mux_data_in, &frame_out, 0);
+		MBX_post(&MBX_TSK_calculate_pwr_data_in, &frame_out, 0);
 	}
 }

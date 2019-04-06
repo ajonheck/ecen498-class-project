@@ -54,13 +54,13 @@ Void taskFxn(Arg value_arg)
     while(1)
     {
         TSK_sleep(1);
-        LOG_printf(&trace, "task running! Time is: %d ticks", (Int)TSK_time());
+        //LOG_printf(&trace, "task running! Time is: %d ticks", (Int)TSK_time());
 
         prevHtime = currHtime;
         currHtime = CLK_gethtime();
 
         delta = (currHtime - prevHtime) * ncycles;
-        LOG_printf(&trace, "CPU cycles = 0x%x %x", (uint16_t)(delta >> 16), (uint16_t)(delta));
+        //LOG_printf(&trace, "CPU cycles = 0x%x %x", (uint16_t)(delta >> 16), (uint16_t)(delta));
 
     }
 }

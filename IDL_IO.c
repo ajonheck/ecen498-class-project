@@ -54,7 +54,7 @@ void idl_poll_switches()
     if(reading != filter_switch && filter_switch == HIGH)
     {
     	int16_t true = 1;
-    	MBX_post(&MBX_TSK_filter_data_swap_h, &true, ~0);
+    	MBX_post(&MBX_TSK_filter_data_swap_h, &true, 0);
     }
     filter_switch = reading;
 
@@ -64,7 +64,7 @@ void idl_poll_switches()
     if(reading != sine_switch && sine_switch == HIGH)
     {
     	MuxSource_t mux_source = SINE;
-    	MBX_post(&MBX_TSK_output_mux_source, &mux_source, ~0);
+    	MBX_post(&MBX_TSK_output_mux_source, &mux_source, 0);
     }
     sine_switch = reading;
 }

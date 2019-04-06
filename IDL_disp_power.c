@@ -12,7 +12,9 @@
 #include "IDL_disp.h"
 #include "lcd.h"
 
-extern MBX_Obj MBX_IDL_disp_power_data_in;
+extern MBX_Obj MBX_IDL_disp_fft_data_in;
+
+#define WRITE_LEN (16+1)
 
 int16_t bin_lut[17] =
 {
@@ -38,50 +40,52 @@ void idl_disp_power_init(void)
 
 	// Set column boundaries
 	osd9616_send(0x00, 0x21); // set column command
-	osd9616_send(0x00, 0x7E); // set low column to 126
-	osd9616_send(0x00, 0x7F); // set high column to 127
+	osd9616_send(0x00, 0x00); // set low column to 0
+	osd9616_send(0x00, 0x5F); // set high column to 95
 
 	// Set page boundaries
 	osd9616_send(0x00, 0x22); // set page command
 	osd9616_send(0x00, 0x00); // set low page to 0
 	osd9616_send(0x00, 0x01); // set high page to 1
 
-	// setup scrolling
-	osd9616_send(0x00,0x27);  // right horizontal scroll
-	osd9616_send(0x00,0x00);  // dummy byte
-	osd9616_send(0x00,0x00);  // start page 0
-	osd9616_send(0x00,0x02);  // set scroll rate 64 frames
-	osd9616_send(0x00,0x01);  // stop page 1
-	osd9616_send(0x00,0x00);  // dummy byte
-	osd9616_send(0x00,0xff);  // dummy byte
+	osd9616_send(0x00,0x2e);  // Deactivate Scrolling
 }
 
 void idl_disp_power(void)
 {
-	int16_t i, pwr, upper_byte, lower_byte, count = 0, col = 0;
+	int16_t j, i, upper_byte, lower_byte, count = 0, col = 0;
+	int16_t fft[96];
+	int16_t cmd[WRITE_LEN];
+	int16_t cmd_i = 1;
 
-	MBX_pend(&MBX_IDL_disp_power_data_in, &pwr, ~0);
-
-	// generate display value
-	for(i = 0; col < pwr && i < 16; i ++ )
+	if(MBX_pend(&MBX_IDL_disp_fft_data_in, &fft, 0) == TRUE)
 	{
-		col |= 1 << i;
-		count ++;
+		for(i = 96; i > 0; i--)
+		{
+			count = 0;
+			col = 0;
+			// generate display value
+			for(j = 0; col < fft[i] && j < 16; j ++ )
+			{
+				col |= 1 << j;
+				count ++;
+			}
+
+			upper_byte = (bin_lut[count] & 0xFF00) >> 8;
+			lower_byte = bin_lut[count] & 0x00FF;
+
+			cmd[cmd_i] = upper_byte;
+			cmd_i ++;
+			cmd[cmd_i] = lower_byte;
+			cmd_i ++;
+			if(cmd_i == WRITE_LEN)
+			{
+				cmd_i = 0;
+				cmd[cmd_i] = 0x40;
+				cmd_i ++;
+				EZDSP5502_I2C_write( OSD9616_I2C_ADDR, cmd, WRITE_LEN );
+			}
+		}
 	}
-
-	upper_byte = (bin_lut[count] & 0xFF00) >> 8;
-	lower_byte = bin_lut[count] & 0x00FF;
-
-	// Send 2 column wide display value
-	osd9616_send(0x40,upper_byte);
-	osd9616_send(0x40,lower_byte);
-	osd9616_send(0x40,upper_byte);
-	osd9616_send(0x40,lower_byte);
-
-	// toggle scrolling twice to shift out new values
-	osd9616_send(0x00,0x2f);  // activate scrolling
-	osd9616_send(0x00,0x2e);  // Deactivate Scrolling
-	osd9616_send(0x00,0x2f);  // activate scrolling
-	osd9616_send(0x00,0x2e);  // Deactivate Scrolling
 }
 
