@@ -11,8 +11,8 @@
 
 extern MBX_Obj MBX_TSK_filter_data_in;
 extern MBX_Obj MBX_TSK_filter_data_swap_h;
-extern MBX_Obj MBX_TSK_output_mux_data_in;
 extern MBX_Obj MBX_IDL_control_LED_input;
+extern MBX_Obj MBX_HWI_I2S_TX_data_in;
 
 #define LEN_H 256
 #define LEN_DL (LEN_AUDIO_FRAME - 1 + LEN_H)
@@ -62,12 +62,14 @@ int16_t h_low[] =
          9,      9,      9,      9,      8,      8,      8,      8,      7,      7,      7,      7,      7,      6,      6,      6,
 };
 
+int16_t dlr[LEN_DL];
+int16_t dll[LEN_DL];
 Void tsk_filter_data(Arg value_arg)
 {
 	// Thread variables
 	int16_t *h, *dl;
-	int16_t dlr[LEN_DL];
-	int16_t dll[LEN_DL];
+	int16_t i, fft_i = 0;
+	int16_t fft[256];
 	int16_t update_filter;
 	AudioFrame_t frame_in;
 	AudioFrame_t frame_out;
@@ -127,7 +129,21 @@ Void tsk_filter_data(Arg value_arg)
 
 		// set channel and post frame to mux
 		frame_out.channel = frame_in.channel;
-		MBX_post(&MBX_TSK_output_mux_data_in, &frame_out, 0);
-		MBX_post(&MBX_TSK_calculate_pwr_data_in, &frame_out, 0);
+		MBX_post(&MBX_HWI_I2S_TX_data_in, &frame_out, 0);
+
+		if(frame_out.channel == LEFT)
+		{
+			for(i = 0; i < LEN_AUDIO_FRAME && fft_i < 256;)
+			{
+				fft[fft_i] = frame_out.frame[i];
+				i++;
+				fft_i++;
+			}
+			if(fft_i == 256)
+			{
+				fft_i = 0;
+				MBX_post(&MBX_TSK_fft_data_in, &fft, 0);
+			}
+		}
 	}
 }

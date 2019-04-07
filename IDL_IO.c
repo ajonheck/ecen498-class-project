@@ -10,25 +10,23 @@
 #include "csl_gpio.h"
 #include "stdio.h"
 #include "stdint.h"
-#include "TSK_output_mux.h"
 #include <mbx.h>
 #include "hellocfg.h"
 #include "IDL_IO.h"
 
 #define SW_FILT (SW1)
-#define SW_SINE (SW0)
+#define SW_DISP (SW0)
 
 static int16_t filter_switch;
 static int16_t sine_switch;
 
 extern MBX_Obj MBX_TSK_filter_data_swap_h;
-extern MBX_Obj MBX_TSK_output_mux_source;
 extern MBX_Obj MBX_IDL_control_LED_input;
 
 void IDL_IO_setup(){
 
     EZDSP5502_I2CGPIO_configLine( SW_FILT, IN );
-    EZDSP5502_I2CGPIO_configLine( SW_SINE, IN );
+    EZDSP5502_I2CGPIO_configLine( SW_DISP, IN );
     filter_switch = LOW;
     sine_switch = LOW;
 
@@ -60,11 +58,9 @@ void idl_poll_switches()
 
 
 	// get sine switch reading and determine if a press event occured
-    reading = EZDSP5502_I2CGPIO_readLine(SW_SINE);
+    reading = EZDSP5502_I2CGPIO_readLine(SW_DISP);
     if(reading != sine_switch && sine_switch == HIGH)
     {
-    	MuxSource_t mux_source = SINE;
-    	MBX_post(&MBX_TSK_output_mux_source, &mux_source, 0);
     }
     sine_switch = reading;
 }

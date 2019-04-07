@@ -11,28 +11,27 @@
 #include "HWI_I2S.h"
 #include <mbx.h>
 #include "c55x.h"
-
+#include "string.h"
 #include "fft/FFT.h"
 
 #define NUM_SAMPLED_FRAMES 28
 
-extern MBX_Obj MBX_TSK_calculate_pwr_data_in;
+extern MBX_Obj MBX_TSK_fft_data_in;
 extern MBX_Obj MBX_IDL_disp_fft_data_in;
 
 extern ExtU_FFT_T FFT_U;
 extern ExtY_FFT_T FFT_Y;
 
-int16_t pwr(const int16_t *data, const int16_t len);
+//int16_t pwr(const int16_t *data, const int16_t len);
 
-void tsk_calculate_pwr(Arg value_arg)
+void tsk_fft(Arg value_arg)
 {
-	int16_t i;
-	int16_t u_i = 0;
+	FFT_initialize();
 	while(1)
 	{
-		MBX_pend(&MBX_TSK_calculate_pwr_data_in, FFT_U.In1, ~0);
+		MBX_pend(&MBX_TSK_fft_data_in, FFT_U.In1, ~0);
 		FFT_step();
-		MBX_post(&MBX_IDL_disp_fft_data_in, &FFT_Y.Out1, ~0);
+		MBX_post(&MBX_IDL_disp_fft_data_in, FFT_Y.Out1, ~0);
 	}
 	/*
 	AudioFrame_t fin;
@@ -56,6 +55,7 @@ void tsk_calculate_pwr(Arg value_arg)
 	*/
 }
 
+/*
 int16_t pwr(const int16_t *data, const int16_t len)
 {
 	int40_t p = 0;
@@ -68,3 +68,4 @@ int16_t pwr(const int16_t *data, const int16_t len)
 	p = _lshrs(_rnd(p / len),16);
 	return (int16_t) p;
 }
+*/

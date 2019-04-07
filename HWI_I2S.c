@@ -21,7 +21,6 @@
 
 // external variables
 extern MCBSP_Handle aicMcbsp;
-extern MBX_Obj MBX_TSK_calculate_pwr_data_in;
 extern MBX_Obj MBX_TSK_filter_data_in;
 extern MBX_Obj MBX_HWI_I2S_TX_data_in;
 

@@ -11,10 +11,13 @@
 #include <mbx.h>
 #include "IDL_disp.h"
 #include "lcd.h"
+#include "c55x.h"
 
 extern MBX_Obj MBX_IDL_disp_fft_data_in;
 
-#define WRITE_LEN (16+1)
+#define WRITE_LEN (8+1)
+
+int16_t disp_mode;
 
 int16_t bin_lut[17] =
 {
@@ -26,7 +29,23 @@ int16_t bin_lut[17] =
 
 };
 
-void idl_disp_power_init(void)
+int16_t fft_bin_edge[16] =
+{
+		10, 14, 20,	28,
+		40, 58, 83, 118,
+		169, 241, 344, 492,
+		702, 1004, 1433, 2048
+};
+
+int16_t pwr_bin_edge[16] =
+{
+		9, 11, 14,	18,
+		22, 27, 34, 43,
+		54, 67, 84, 105,
+		131, 164, 204, 256
+};
+
+void IDL_disp_fft_init(void)
 {
 	osd9616_init( );   // Initialize  Display
 
@@ -48,31 +67,45 @@ void idl_disp_power_init(void)
 	osd9616_send(0x00, 0x00); // set low page to 0
 	osd9616_send(0x00, 0x01); // set high page to 1
 
-	osd9616_send(0x00,0x2e);  // Deactivate Scrolling
+	disp_mode = 1;
+
 }
 
-void idl_disp_power(void)
+void idl_disp_fft(void)
 {
-	int16_t j, i, upper_byte, lower_byte, count = 0, col = 0;
+	int16_t j, i, upper_byte, lower_byte;
 	int16_t fft[96];
 	int16_t cmd[WRITE_LEN];
 	int16_t cmd_i = 1;
+	int16_t *bin;
+	int32_t x;
 
 	if(MBX_pend(&MBX_IDL_disp_fft_data_in, &fft, 0) == TRUE)
 	{
+		if(disp_mode == 0)
+		{
+			bin = fft_bin_edge;
+		}
+		else
+		{
+			bin = pwr_bin_edge;
+		}
 		for(i = 96; i > 0; i--)
 		{
-			count = 0;
-			col = 0;
-			// generate display value
-			for(j = 0; col < fft[i] && j < 16; j ++ )
+			if(disp_mode == 1)
 			{
-				col |= 1 << j;
-				count ++;
+				x = _lsmpy(fft[i], fft[i]);
+				x = _lshrs(_rnd(x), 16);
+			} else {
+				x = fft[i];
+			}
+			// generate display value
+			for(j = 0; bin[j] < x && j < 16; j ++ )
+			{
 			}
 
-			upper_byte = (bin_lut[count] & 0xFF00) >> 8;
-			lower_byte = bin_lut[count] & 0x00FF;
+			upper_byte = (bin_lut[j] & 0xFF00) >> 8;
+			lower_byte = bin_lut[j] & 0x00FF;
 
 			cmd[cmd_i] = upper_byte;
 			cmd_i ++;

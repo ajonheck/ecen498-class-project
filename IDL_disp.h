@@ -8,6 +8,6 @@
 #ifndef IDL_DISP_H_
 #define IDL_DISP_H_
 
-void idl_disp_power_init(void);
+void IDL_disp_fft_init(void);
 
 #endif /* IDL_DISP_H_ */
