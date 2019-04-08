@@ -114,6 +114,7 @@ void idl_disp_fft(void)
 	// handle display of new data
 	if(MBX_pend(&MBX_IDL_disp_fft_data_in, &fft, 0) == TRUE)
 	{
+		// Determine what bins to use
 		if(disp_mode == FFT)
 		{
 			bin = fft_bin_edge;
@@ -124,6 +125,7 @@ void idl_disp_fft(void)
 		}
 		for(i = 96; i > 0; i--)
 		{
+			// Optional squaring of FFT
 			if(disp_mode == POWER)
 			{
 				x = _lsmpy(fft[i], fft[i]);
@@ -131,18 +133,20 @@ void idl_disp_fft(void)
 			} else {
 				x = fft[i];
 			}
+
 			// generate display value
-			for(j = 0; bin[j] < x && j < 16; j ++ )
-			{
-			}
+			for(j = 0; bin[j] < x && j < 16; j ++ );
 
 			upper_byte = (bin_lut[j] & 0xFF00) >> 8;
 			lower_byte = bin_lut[j] & 0x00FF;
 
+			// Generate multi-data command
 			cmd[cmd_i] = upper_byte;
 			cmd_i ++;
 			cmd[cmd_i] = lower_byte;
 			cmd_i ++;
+
+			// If command is full write to display
 			if(cmd_i == WRITE_LEN)
 			{
 				cmd_i = 0;
