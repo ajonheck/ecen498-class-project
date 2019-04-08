@@ -14,8 +14,8 @@ typedef enum
 {
 	LED_LPF = (LED0),
 	LED_HPF = (LED1),
-	LED_SINE = (LED2),
-	LED_FILT = (LED3)
+	LED_PWR = (LED2),
+	LED_FFT = (LED3)
 }LEDid_t;
 
 typedef enum

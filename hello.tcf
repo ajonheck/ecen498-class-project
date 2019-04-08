@@ -227,6 +227,8 @@ bios.IDL.create("IDL_disp_fft");
 bios.IDL.instance("IDL_disp_fft").order = 9;
 bios.IDL.instance("IDL_disp_fft").fxn = prog.extern("idl_disp_power");
 bios.IDL.instance("IDL_disp_fft").fxn = prog.extern("idl_disp_fft");
+bios.MBX.create("MBX_IDL_disp_fft_mode");
+bios.TSK.instance("TSK_idle").stackSize = 512;
 // !GRAPHICAL_CONFIG_TOOL_SCRIPT_INSERT_POINT!
 
 if (config.hasReportedError == false) {

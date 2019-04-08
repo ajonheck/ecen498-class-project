@@ -12,12 +12,21 @@
 #include "IDL_disp.h"
 #include "lcd.h"
 #include "c55x.h"
+#include "IDL_IO.h"
 
 extern MBX_Obj MBX_IDL_disp_fft_data_in;
+extern MBX_Obj MBX_IDL_disp_fft_mode;
+extern MBX_Obj MBX_IDL_control_LED_input;
 
-#define WRITE_LEN (8+1)
+#define WRITE_LEN (48+1)
 
-int16_t disp_mode;
+typedef enum
+{
+	FFT = 0,
+	POWER = 1
+}DispMode_t;
+
+DispMode_t disp_mode;
 
 int16_t bin_lut[17] =
 {
@@ -67,22 +76,45 @@ void IDL_disp_fft_init(void)
 	osd9616_send(0x00, 0x00); // set low page to 0
 	osd9616_send(0x00, 0x01); // set high page to 1
 
-	disp_mode = 1;
-
+	disp_mode = FFT;
 }
 
 void idl_disp_fft(void)
 {
-	int16_t j, i, upper_byte, lower_byte;
+	int16_t press, j, i, upper_byte, lower_byte;
+	LEDdata_t power_led, fft_led;
 	int16_t fft[96];
 	int16_t cmd[WRITE_LEN];
 	int16_t cmd_i = 1;
 	int16_t *bin;
 	int32_t x;
 
+	// handle any updates to the displayed data
+	if(MBX_pend(&MBX_IDL_disp_fft_mode, &press, 0) == TRUE)
+	{
+		disp_mode = (disp_mode == FFT ? POWER : FFT);
+		if(disp_mode == POWER)
+		{
+			power_led.led_id = LED_PWR;
+			power_led.state = LED_ON;
+			fft_led.led_id = LED_FFT;
+			fft_led.state = LED_OFF;
+		}
+		else
+		{
+			power_led.led_id = LED_PWR;
+			power_led.state = LED_OFF;
+			fft_led.led_id = LED_FFT;
+			fft_led.state = LED_ON;
+		}
+		MBX_post(&MBX_IDL_control_LED_input, &power_led, 0);
+		MBX_post(&MBX_IDL_control_LED_input, &fft_led, 0);
+	}
+
+	// handle display of new data
 	if(MBX_pend(&MBX_IDL_disp_fft_data_in, &fft, 0) == TRUE)
 	{
-		if(disp_mode == 0)
+		if(disp_mode == FFT)
 		{
 			bin = fft_bin_edge;
 		}
@@ -92,7 +124,7 @@ void idl_disp_fft(void)
 		}
 		for(i = 96; i > 0; i--)
 		{
-			if(disp_mode == 1)
+			if(disp_mode == POWER)
 			{
 				x = _lsmpy(fft[i], fft[i]);
 				x = _lshrs(_rnd(x), 16);

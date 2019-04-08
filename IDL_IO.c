@@ -22,6 +22,7 @@ static int16_t sine_switch;
 
 extern MBX_Obj MBX_TSK_filter_data_swap_h;
 extern MBX_Obj MBX_IDL_control_LED_input;
+extern MBX_Obj MBX_IDL_disp_fft_mode;
 
 void IDL_IO_setup(){
 
@@ -32,6 +33,10 @@ void IDL_IO_setup(){
 
     EZDSP5502_I2CGPIO_configLine( LED_LPF, OUT );
     EZDSP5502_I2CGPIO_configLine( LED_HPF, OUT );
+    EZDSP5502_I2CGPIO_configLine( LED_PWR, OUT );
+    EZDSP5502_I2CGPIO_configLine( LED_FFT, OUT );
+
+	EZDSP5502_I2CGPIO_writeLine(LED_FFT, LED_ON);
 }
 
 void idl_control_LED()
@@ -57,10 +62,12 @@ void idl_poll_switches()
     filter_switch = reading;
 
 
-	// get sine switch reading and determine if a press event occured
+	// get disp switch reading and determine if a press event occured
     reading = EZDSP5502_I2CGPIO_readLine(SW_DISP);
     if(reading != sine_switch && sine_switch == HIGH)
     {
+    	int16_t true = 1;
+    	MBX_post(&MBX_IDL_disp_fft_mode, &true, 0);
     }
     sine_switch = reading;
 }
