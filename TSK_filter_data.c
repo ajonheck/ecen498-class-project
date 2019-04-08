@@ -20,7 +20,8 @@ extern MBX_Obj MBX_HWI_I2S_TX_data_in;
 typedef enum
 {
 	LPF = 0,
-	HPF = 1
+	HPF = 1,
+	NOF = 2
 }FilterCoeffs_t;
 
 static int16_t h_high[] =
@@ -108,6 +109,12 @@ Void tsk_filter_data(Arg value_arg)
     		   		lpf_msg.state = LED_OFF;
     		   		hpf_msg.state = LED_ON;
     		   	}
+    		   	else if(filter_coeffs == HPF)
+    		   	{
+    		   		filter_coeffs = NOF;
+    		   		lpf_msg.state = LED_OFF;
+    		   		hpf_msg.state = LED_OFF;
+    		   	}
     		   	else
     		   	{
     		   		filter_coeffs = LPF;
@@ -124,13 +131,21 @@ Void tsk_filter_data(Arg value_arg)
 		// determine delay line
 		dl = ( (frame_in.channel == LEFT) ? dll : dlr );
 
-		// perform filtering
-		fir_filter(frame_in.frame, LEN_AUDIO_FRAME, h, LEN_H, frame_out.frame, dl);
+		// perform filtering if needed
+		if(filter_coeffs != NOF)
+		{
+			fir_filter(frame_in.frame, LEN_AUDIO_FRAME, h, LEN_H, frame_out.frame, dl);
+		}
+		else
+		{
+			memcpy(frame_out.frame, frame_in.frame, sizeof(int16_t)*LEN_AUDIO_FRAME);
+		}
 
-		// set channel and post frame to mux
+		// set channel and post frame to HW tx
 		frame_out.channel = frame_in.channel;
 		MBX_post(&MBX_HWI_I2S_TX_data_in, &frame_out, 0);
 
+		// buffer left channel frames for FFT display
 		if(frame_out.channel == LEFT)
 		{
 			for(i = 0; i < LEN_AUDIO_FRAME && fft_i < 256;)
